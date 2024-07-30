@@ -52,5 +52,9 @@ func main() {
 
 	app.Get("/news", Auth, crud.Get_All_News)
 
+	app.Get("/news/:id", Auth, crud.Get_News_By_ID)
+
+	app.Delete("/news/:id", Auth, crud.Delete_News)
+
 	log.Fatal(app.Listen(":8080"))
 }

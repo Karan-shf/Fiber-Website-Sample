@@ -10,6 +10,7 @@ import (
 	jtoken "github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -75,4 +76,83 @@ func Get_All_News(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(news_list)
+}
+
+func Get_News_By_ID(c *fiber.Ctx) error {
+
+	var news models.News
+
+	id := c.Params("id")
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+
+	if err != nil {
+		c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	errr := database.NewsCollection.FindOne(context.Background(), filter).Decode(&news)
+
+	if errr != nil {
+		if errr == mongo.ErrNoDocuments {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "news not found"})
+		}
+		c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "error while fetching news from database:" + err.Error()})
+	}
+
+	return c.Status(http.StatusOK).JSON(news)
+}
+
+func Delete_News(c *fiber.Ctx) error {
+
+	user := c.Locals("user").(*jtoken.Token)
+	claims := user.Claims.(jtoken.MapClaims)
+
+	_, adminObj, is_admin, err := Get_Ent(claims)
+
+	if err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid Token"})
+	}
+
+	if !is_admin {
+		return c.Status(http.StatusMethodNotAllowed).JSON(fiber.Map{"error": "you must be an admin to access this method"})
+	}
+
+	id := c.Params("id")
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	var deleting_news models.News
+
+	errr := database.NewsCollection.FindOne(context.Background(), filter).Decode(&deleting_news)
+
+	if errr != nil {
+		if errr == mongo.ErrNoDocuments {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "news not found"})
+		}
+		c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "error while fetching news from database:" + errr.Error()})
+	}
+
+	if adminObj.ID != deleting_news.Author.ID {
+		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "only author of news can delete it"})
+	}
+
+	deleteResult, err := database.NewsCollection.DeleteOne(context.Background(), filter)
+
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "error while deleting from database"})
+	}
+
+	if deleteResult.DeletedCount == 0 {
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "news was not found"})
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{"message": "task deleted succesfully"})
 }
