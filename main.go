@@ -29,9 +29,7 @@ func main() {
 
 	app := fiber.New()
 
-	log.Println("secret key is: ", config.JWT_SECRET_KEY)
-
-	UserAuth := middlewares.UserAuthMiddleware(config.JWT_SECRET_KEY)
+	Auth := middlewares.AuthMiddleware(config.JWT_SECRET_KEY)
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "http://localhost:5173, http://localhost:3000",
@@ -44,11 +42,15 @@ func main() {
 
 	app.Post("/user/login", crud.Login_User)
 
-	app.Get("/user", UserAuth, crud.Get_User)
+	app.Get("/user", Auth, crud.Get_User)
 
 	app.Post("/admin/register", crud.Add_Admin)
 
 	app.Post("/admin/login", crud.Login_Admin)
+
+	app.Post("/news", Auth, crud.Add_News)
+
+	app.Get("/news", Auth, crud.Get_All_News)
 
 	log.Fatal(app.Listen(":8080"))
 }

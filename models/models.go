@@ -26,6 +26,7 @@ type News struct {
 	Title      string             `json:"title"`
 	Body       string             `json:"body"`
 	TimeOfCast time.Time          `json:"timeofcast"`
+	Author     Admin              `json:"author"`
 }
 
 type LoginRequest struct {

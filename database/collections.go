@@ -1,14 +1,14 @@
 package database
 
 import (
-	"context"
+	// "context"
 
 	"log"
 
-	"go.mongodb.org/mongo-driver/bson"
+	// "go.mongodb.org/mongo-driver/bson"
 
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	// "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var UserCollection *mongo.Collection
@@ -25,18 +25,9 @@ func DeployCollections() {
 
 	log.Println("Collections Deployed Succesfully")
 
-	indexModel := mongo.IndexModel{
-		Keys:    bson.M{"username": 1},
-		Options: options.Index().SetUnique(true),
-	}
-	_, err := AdminCollection.Indexes().CreateOne(context.Background(), indexModel)
-	if err != nil {
-		log.Fatal("error while adding index: ", err)
-	}
-	log.Println("unique index added to admin collection")
 }
 
-// -- making username unique in user collection --
+// -- making username unique in users collection --
 // indexModel := mongo.IndexModel{
 // 	Keys:    bson.M{"username": 1},
 // 	Options: options.Index().SetUnique(true),
@@ -45,3 +36,14 @@ func DeployCollections() {
 // if err != nil {
 // 	log.Fatal("error while adding index: ", err)
 // }
+
+// -- making username unique in admins collection --
+// indexModel := mongo.IndexModel{
+// 	Keys:    bson.M{"username": 1},
+// 	Options: options.Index().SetUnique(true),
+// }
+// _, err := AdminCollection.Indexes().CreateOne(context.Background(), indexModel)
+// if err != nil {
+// 	log.Fatal("error while adding index: ", err)
+// }
+// log.Println("unique index added to admin collection")

@@ -5,7 +5,7 @@ import (
 	jwtware "github.com/gofiber/jwt/v3"
 )
 
-func UserAuthMiddleware(secret string) fiber.Handler {
+func AuthMiddleware(secret string) fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: []byte(secret),
 	})

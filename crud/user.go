@@ -97,18 +97,50 @@ func Login_User(c *fiber.Ctx) error {
 func Get_User(c *fiber.Ctx) error {
 	user := c.Locals("user").(*jtoken.Token)
 	claims := user.Claims.(jtoken.MapClaims)
+	// claim_id := claims["id"].(string)
+	// id, _ := primitive.ObjectIDFromHex(claim_id)
+	// is_admin := claims["is_admin"].(bool)
+	// if !is_admin {
+	// 	var user models.User
+	// 	filter := bson.M{"_id": id}
+	// 	database.UserCollection.FindOne(context.Background(), filter).Decode(&user)
+	// 	return c.Status(http.StatusOK).JSON(user)
+	// } else {
+	// 	var admin models.Admin
+	// 	filter := bson.M{"_id": id}
+	// 	database.AdminCollection.FindOne(context.Background(), filter).Decode(&admin)
+	// 	return c.Status(http.StatusOK).JSON(admin)
+	// }
+	userObj, adminObj, is_admin, err := Get_Ent(claims)
+
+	if err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid Token"})
+	}
+
+	if is_admin {
+		return c.Status(http.StatusOK).JSON(adminObj)
+	}
+	return c.Status(http.StatusOK).JSON(userObj)
+
+}
+
+func Get_Ent(claims jtoken.MapClaims) (*models.User, *models.Admin, bool, error) {
+
 	claim_id := claims["id"].(string)
 	id, _ := primitive.ObjectIDFromHex(claim_id)
 	is_admin := claims["is_admin"].(bool)
+	filter := bson.M{"_id": id}
+	var user models.User
+	var admin models.Admin
+	var err error
 	if !is_admin {
-		var user models.User
-		filter := bson.M{"_id": id}
-		database.UserCollection.FindOne(context.Background(), filter).Decode(&user)
-		return c.Status(http.StatusOK).JSON(user)
+		err = database.UserCollection.FindOne(context.Background(), filter).Decode(&user)
+		// return c.Status(http.StatusOK).JSON(user)
 	} else {
-		var admin models.Admin
-		filter := bson.M{"_id": id}
-		database.AdminCollection.FindOne(context.Background(), filter).Decode(&admin)
-		return c.Status(http.StatusOK).JSON(admin)
+		// filter := bson.M{"_id": id}
+		err = database.AdminCollection.FindOne(context.Background(), filter).Decode(&admin)
+		// return c.Status(http.StatusOK).JSON(admin)
 	}
+	return &user, &admin, is_admin, err
+
 }
