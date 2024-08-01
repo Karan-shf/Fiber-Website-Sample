@@ -154,5 +154,5 @@ func Delete_News(c *fiber.Ctx) error {
 		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "news was not found"})
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"message": "task deleted succesfully"})
+	return c.Status(http.StatusOK).JSON(fiber.Map{"message": "news deleted succesfully"})
 }
